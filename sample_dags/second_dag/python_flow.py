@@ -65,6 +65,7 @@ else:
 
             print(f"Total order value is: {total_order_value:.2f}")
 
+        #Do the Stuff
         order_data = extract()
         order_summary = transform(order_data)
         load(order_summary["total_order_value"])
