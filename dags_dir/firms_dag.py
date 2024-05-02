@@ -10,7 +10,9 @@ log = logging.getLogger(__name__)
 
 if not is_venv_installed():
     log.warning("The tutorial_taskflow_api_virtualenv example DAG requires virtualenv, please install it.")
+
 else:
+
     @dag(schedule=None, 
          start_date=datetime(2021, 1, 1), 
          catchup=False, 
@@ -27,10 +29,13 @@ else:
             
         # Function we will use to check our status in terms of the number of transactions we have made.
         def check_status():
+
             import pandas as pd
+
             #The MAP key we will use for downloading the data.
             MAP_KEY = '2e4281b9ae8d1da4a98529465a8bf118'
             url = 'https://firms.modaps.eosdis.nasa.gov/mapserver/mapkey_status/?MAP_KEY=' + MAP_KEY
+
             try:
                 # We will use the API to get the current number of transactions and the transaction limit.
                 df = pd.read_json(url,  typ='series')
@@ -50,26 +55,35 @@ else:
         limit has been reset.
         """
         def firms_acquire():
+
             import pandas as pd
             import time
             
             from datetime import datetime, timedelta
 
             MAP_KEY = '2e4281b9ae8d1da4a98529465a8bf118'
+
             # We will create an array of CSV files that we will combine into a single file.
             csv_arr = []
+
             # The start date that we will use for downloading the data.
             start_date_str = "2023-02-24"
+
             # The date class we will use for representing the start date.
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+
             # The last date we will download the data from.
             end_date_str = "2024-02-24"
+
             # The date class we will use to represent the end date.
             end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
             url = "https://firms.modaps.eosdis.nasa.gov/api/country/csv/" + MAP_KEY + "/MODIS_NRT/UKR/10/" + start_date_str
+
             #We will keep downloading more data until we reach the entire year.
             while start_date < end_date:
+
                 try:
+
                     #We want to gather the data for use as CSVs in order to be able to process them using Linux commands.
                     df_ukr = pd.read_csv(url)
                     #todo: Add the ability to store the data as JSONs as well for a greater ability to store and work with the data.
@@ -85,67 +99,77 @@ else:
                     start_date_str = start_date.strftime("%Y-%m-%d")
                     #We must change the URL value in order to use the new date for continued use.
                     url = "https://firms.modaps.eosdis.nasa.gov/api/country/csv/" + MAP_KEY + "/MODIS_NRT/UKR/10/" + start_date_str
+
+
                 except:
+
                     # We will check the number of transactions left.
                     transactions_left = check_status()
+
                     if transactions_left != -1 and transactions_left < 50:
                         print("We have less than 100 queries left.  We may have to wait another ten minutes before we can continue scraping...")
                         # We have the function sleep for 10 minutes.
                         time.sleep(600)
+
                     else:
                         print("There is an issue with the query. \nTry in your browser: %s" % url)
                 
                 return {"status": "success", "data_path": csv_arr}
 
         
-        # Function we will use to combine all of the separate CSVs into a single CSV.
-        def combine(file_list):
-            data_frame = [pd.read_csv(file) for file in file_list["data_path"]]
-            combined_data_frame = pd.concat(data_frame)
-            combined_data_frame.to_csv('/storage/combined_data.csv', index=True)
+                # Function we will use to combine all of the separate CSVs into a single CSV.
+            def combine(file_list):
+                data_frame = [pd.read_csv(file) for file in file_list["data_path"]]
+                combined_data_frame = pd.concat(data_frame)
+                combined_data_frame.to_csv('/storage/combined_data.csv', index=True)
             
-            ## return status
-            return {"status" : "success", "data_path" : "/storage/combined_data.csv" }
+                # Return status
+                return {"status" : "success", "data_path" : "/storage/combined_data.csv" }
 
 
-        def firms_acquisition():
-            file_path_list = firms_acquire()
-            return combine(file_path_list)
+            def firms_acquisition():
+                file_path_list = firms_acquire()
+                return combine(file_path_list)
 
         
         @task()
-        def data_cleanse(data_package: dict):
-            """
-            #### Data Cleanse
-            This tasks cleans the data given a path to the recently acquired data.
-            """
+        def data_cleanse():
+            import os
+            import pandas as pd
 
-            ### import modules/libraries
-            import json
+            folder_path = '/storage/firms_data/raw_csv'
+            save_path = '/storage/firms_data/cleaned_csv' 
+            remove_columns_from_csv(folder_path)
 
-            ## perform data cleansing
-            data_id = "1234"
+            def remove_columns_from_csv(folder_path):
 
-            ## save data
-            data_path = "/storage/cleanse/" + data_id
+                # Define the columns to be removed
+                columns_to_remove = ['scan', 'track', 'satellite', 'version', 'frp']
 
-            ## return status
-            return {"status" : "success", "data_path" : data_path}
+                 # Loop through all files in the specified folder
+                for filename in os.listdir(folder_path):
 
+                    if filename.endswith(".csv"):
+                        file_path = os.path.join(folder_path, filename)
+            
+                        # Read the CSV file
+                        df = pd.read_csv(file_path)
+            
+                        # Remove the specified columns
+                        df = df.drop(columns=[col for col in columns_to_remove if col in df.columns])
+            
+                        # Save the modified DataFrame back to CSV
+                        df.to_csv(save_path, index=False)
+                        print(f"Processed {filename}")
+
+                        ## return status
+                        return {"status" : "success", "folder_path" : save_path}
+                    
         @task()
         def data_analysis(data_package: dict):
-            """
-            #### Analysis
-            This task analyzes the data given a path to the recently cleansed data.
-            """
-            ### import modules/libraries
-            import json
-
-            ## perform data cleansing
-            data_id = "1234"
-
+          
             ## save data
-            data_path = "/storage/analysis/" + data_id
+            data_path = "/storage/analysis/"
 
             ## return status
             return {"status" : "success", "data_path" : data_path}
@@ -162,10 +186,10 @@ else:
             return 
         ## data flow
 
-        data_a = firms_acquisition()
+        data_a = firms_acquire()
         data_b = data_cleanse(data_a)
         data_c = data_analysis(data_b)
 
         visualize(data_c)
 
-    python_demo_dag = firms_pipeline()
+    firmspipeline = firms_pipeline()
