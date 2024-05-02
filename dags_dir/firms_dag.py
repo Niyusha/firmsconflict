@@ -64,6 +64,7 @@ else:
         """
         def acquire():
             import pandas as pd
+            import time
             
             from datetime import datetime, timedelta
 
@@ -103,7 +104,7 @@ else:
                     if transactions_left > 50:
                         print("We have less than 100 queries left.  We may have to wait another ten minutes before we can continue scraping...")
                         # We have the function sleep for 10 minutes.
-                        sleep(600)
+                        time.sleep(600)
                     else:
                         print("There is an issue with the query. \nTry in your browser: %s" % url)
                 
