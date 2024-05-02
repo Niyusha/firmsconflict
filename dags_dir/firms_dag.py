@@ -88,7 +88,7 @@ else:
                 except:
                     # We will check the number of transactions left.
                     transactions_left = check_status()
-                    if transactions_left > 50:
+                    if transactions_left != -1 and transactions_left < 50:
                         print("We have less than 100 queries left.  We may have to wait another ten minutes before we can continue scraping...")
                         # We have the function sleep for 10 minutes.
                         time.sleep(600)
