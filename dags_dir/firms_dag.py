@@ -24,19 +24,6 @@ else:
             requirements=["funcsigs"],
         )
 
-        
-        def firms_aquisition():
-        #Data Acquisition from NASA
-        
-            # We import pandas since we will use to collect the satellite data.
-            import pandas as pd
-
-            # We are using the datetime module to add and subtract dates.
-            from datetime import datetime, timedelta
-
-
-
-            # We are going to acquire the data from the NASA FIRMS database.
             
         # Function we will use to check our status in terms of the number of transactions we have made.
         def check_status():
@@ -62,7 +49,7 @@ else:
         TODO: Add the feature that allows us to continue downloading after ten minutes have passed so the transaction
         limit has been reset.
         """
-        def acquire():
+        def firms_acquire():
             import pandas as pd
             import time
             
@@ -110,9 +97,10 @@ else:
                 
                 return {"status": "success", "data_path": csv_arr}
 
+        
         # Function we will use to combine all of the separate CSVs into a single CSV.
         def combine(file_list):
-            data_frame = [pd.read_csv for file in file_list["data_path"]]
+            data_frame = [pd.read_csv(file) for file in file_list["data_path"]]
             combined_data_frame = pd.concat(data_frame)
             combined_data_frame.to_csv('/storage/combined_data.csv', index=True)
             
@@ -120,6 +108,11 @@ else:
             return {"status" : "success", "data_path" : "/storage/combined_data.csv" }
 
 
+        def firms_acquisition():
+            file_path_list = firms_acquire()
+            return combine(file_path_list)
+
+        
         @task()
         def data_cleanse(data_package: dict):
             """
@@ -169,7 +162,7 @@ else:
             return 
         ## data flow
 
-        data_a = firms_aquisition()
+        data_a = firms_acquisition()
         data_b = data_cleanse(data_a)
         data_c = data_analysis(data_b)
 
