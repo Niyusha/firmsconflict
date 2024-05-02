@@ -21,7 +21,7 @@ else:
         @task.virtualenv(
             use_dill=True,
             system_site_packages=False,
-            requirements=["funcsigs"],
+            requirements=["funcsigs", "pandas", "pykml"],
         )
 
             
