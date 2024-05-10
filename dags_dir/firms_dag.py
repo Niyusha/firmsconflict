@@ -26,38 +26,36 @@ else:
             requirements=["funcsigs", "pandas", "pykml"],
         )
 
-        # The function for acquiring the data from FIRMS.
-        def firms_acquire() -> dict :
+        def firms_acquisition() -> dict:
             import os
             import re
-
-            # Since we want to find the CSV files with the data, we will use regular expressions.
-            regex=r"\d{,4}-\d{,2}-\d{4}.csv"
-            files = os.listdir('/storage/firms_data')
-            pattern = re.compile(regex)
-
-            matches = [file for file in files if pattern.match(file)]
-            for file in matches:
-                print("acquired " + matches)
-
-            # We will return the status of the function and the list of matches.
-            return { "status" : "success", "data_path" : matches }
-
-
-        # Function we will use to combine all of the separate CSVs into a single CSV.
-        def combine(file_list) -> dict :
             import pandas as pd
-            data_frame = [pd.read_csv(file) for file in file_list["data_path"]]
-            combined_data_frame = pd.concat(data_frame)
-            combined_data_frame.to_csv('/storage/combined_data.csv', index=True)
-            
-            # Return status
-            return {"status" : "success", "data_path" : "/storage/combined_data.csv" }
 
-        def firms_acquisition():
+            # The function for acquiring the data from FIRMS.
+            def firms_acquire() -> dict :
+                # Since we want to find the CSV files with the data, we will use regular expressions.
+                regex=r"\d{,4}-\d{,2}-\d{,2}.csv"
+                files = os.listdir('/storage/firms_data/')
+                pattern = re.compile(regex)
+
+                matches = [f"/storage/firms_data/{file}" for file in files if pattern.match(file)]
+                for file in matches:
+                    print("acquired " + file)
+
+                # We will return the status of the function and the list of matches.
+                return { "status" : "success", "data_path" : matches }
+
+            # Function we will use to combine all of the separate CSVs into a single CSV.
+            def combine(file_list : dict) -> dict :
+                data_frame = [pd.read_csv(file) for file in file_list["data_path"]]
+                combined_data_frame = pd.concat(data_frame)
+                combined_data_frame.to_csv('/storage/firms_data/combined_data.csv', index=True)
+            
+                # Return status
+                return {"status" : "success", "data_path" : "/storage/combined_data.csv" }
+            
             file_path_list = firms_acquire()
             return combine(file_path_list)
-
         
         @task()
         def data_cleanse():
