@@ -58,43 +58,42 @@ else:
             return combine(file_path_list)
         
         @task()
-        def data_cleanse(file_to_clean : dict) -> dict:
+        def data_cleanse(data_path : dict) -> dict:
             import os
             import pandas as pd
 
-            file_path = file_to_clean["data_path"]
-            save_path = '/storage/firms_data/cleaned_data.csv' 
-
             # Moved the function definition to before it is used.
-            def remove_columns_from_csv(folder_path : dict) -> dict:
+            def remove_columns_from_csv(file_path : dict) -> dict:
                 # Define the columns to be removed
                 columns_to_remove = ['scan', 'track', 'satellite', 'version', 'frp']
 
                 # Read the CSV file
-                df = pd.read_csv(file_path)
-            
+                df = pd.read_csv(file_path["data_path"])
+
                 # Remove the specified columns
-                df = df.drop(columns=[col for col in columns_to_remove if col in df.columns])
-            
+                df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], axis=1)
+
+                save_path = '/storage/firms_data/cleaned_data.csv'
                 # Save the modified DataFrame back to CSV
                 df.to_csv(save_path, index=False)
-                print(f"Processed {file_path}")
+                print(f"Processed {file_path['data_path']}")
 
                 ## return status
                 return {"status" : "success", "data_path" : save_path}
 
 
-            def convert_to_json(folder_path : dict) -> dict:
-                df = pd.read_csv(folder_path["data_path"])
+            def convert_to_json(file_path : dict) -> dict:
+                df = pd.read_csv(file_path["data_path"])
                 json_string = df.to_json(orient='records')
 
                 with open('/storage/firms_data/cleaned_data.json', 'w') as f:
-                    f.write(json_string)
+                    f.write(json_string + '\n')
 
                 return {"status" : "success", "data_path": "/storage/firms_data/cleaned_data.json"}
 
-            cleaned_data = remove_columns_from_csv(file_path)
-            return convert_to_json(data1)
+            cleaned_data = remove_columns_from_csv(data_path)
+            return convert_to_json(cleaned_data)
+
                     
         @task()
         def data_analysis(data_package: dict):
