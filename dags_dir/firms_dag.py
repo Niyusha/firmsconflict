@@ -88,7 +88,7 @@ else:
                 df = pd.read_csv(folder_path["data_path"])
                 json_string = df.to_json(orient='records')
 
-                with open('cleaned_data.json', 'w') as f:
+                with open('/storage/firms_data/cleaned_data.json', 'w') as f:
                     f.write(json_string)
 
                 return {"status" : "success", "data_path": "/storage/firms_data/cleaned_data.json"}
