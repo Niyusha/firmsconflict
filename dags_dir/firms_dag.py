@@ -97,7 +97,78 @@ else:
                     
         @task()
         def data_analysis(data_package: dict):
-          
+            import pandas as pd
+
+            # We will read the cleaned CSV file and parse it for the coordinates.
+            def get_coords_by_date(data_path) -> dict:
+                # We will first organize the coordinates by date.
+                df = pd.read_csv(data_path)
+
+                # The number of rows in the CSV file.
+                row_num = df.shape[0]
+
+                # We will convert all of the dates to datetime format instead of strings.
+                df['acq_date'] = pd.to_datetime(df['acq_date'])
+
+                coordinates = dict()
+                for i in range(row_num):
+                    # The curr_date variable will represent the date that our loop is on.
+                    curr_date = df['acq_date'][i]
+                    # If we do not have the acq_date key in the curr_date dictionary for organizing the
+                    # coordinates based on date, we will declare a new list of dictionaries.
+                    if not curr_date in coordinates.keys():
+                        coordinates[curr_date] = list[dict]()
+
+                    # We will append a coordinate to the array.
+                    coordinates[curr_date].append({
+                        'latitude': df['latitude'][i],
+                        'longitude': df['longitude'][i]
+                    })
+
+                return coordinates
+
+            # To make the program more efficient, we will 
+            def get_date_with_most_fires(coords):
+                # We will first organize the coordinates by date.
+                df = pd.read_csv(data_path)
+
+                # The number of rows in the CSV file.
+                row_num = df.shape[0]
+
+                # We will convert all of the dates to datetime format instead of strings.
+                df['acq_date'] = pd.to_datetime(df['acq_date'])
+
+                coordinates = dict()
+                for i in range(row_num):
+                    # The curr_date variable will represent the date that our loop is on.
+                    curr_date = df['acq_date'][i]
+                    # If we do not have the acq_date key in the curr_date dictionary for organizing the
+                    # coordinates based on date, we will declare a new list of dictionaries.
+                    if not curr_date in coordinates.keys():
+                        coordinates[curr_date] = 0
+
+                    # We will append a coordinate to the array.
+                    coordinates[curr_date] += 1
+
+                # We will assign max the default value of zero.
+                max = 0
+                # We will go through each day.
+                for key in coordinates.keys():
+                    # If the current entry is greater than the currently recorded max.
+                    if coordinates[key] > max:
+                        # We assign the max the current entry.
+                        max = coordinates[key]
+
+                # We return the max value.
+                return max
+                
+            coords = get_coords_by_date(data_package['data_path'])
+            # We want to see which day had the most reported fires:
+            for key in coords.keys():
+                # We will print the number of fires for each day.
+                print(f"For date {key}: ")
+                print(f"Amount of coordinates for fires: {len(coords[key])}")
+            
             ## save data
             data_path = "/storage/analysis/"
 
