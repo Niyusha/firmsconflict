@@ -66,10 +66,20 @@ else:
              
         @task()
         def data_analysis(data_package: dict) -> dict:
+            import glob
+            import os
+            import json
+            from pykml import parser
+
             ## save data
             data_path = "/storage/geos_data/"
             save_path = "/storage/analysis"
-            
+
+            # List all KML files in the directory
+            json_files = glob.glob(os.path.join(input_directory, '*.json'))
+            for json_file in json_files:
+                # TODO: Add pandas code for doing statistical analysis of the JSONs.
+
             ## return status
             return {"status" : "success", "data_path" : data_path}
 
