@@ -47,18 +47,23 @@ else:
         
                 with open(kml_file, 'rt', encoding='utf-8') as f:
                     root = parser.parse(f).getroot()
+
+                    # Assuming you want to extract placemarks as an example
+                    placemarks = []
+                    for placemark in root.Document.Folder.Placemark:
+                        # Check if the placemark has a timestamp
+                        if hasattr(placemark, 'TimeStamp'):
+                            timestamp = placemark.TimeStamp.when.text
+                            print(f'Timestamp: {timestamp}')
+
+                        placemarks.append({
+                            'name': str(placemark.name),
+                            # 'description': str(placemark.description),
+                            'coordinates': str(placemark.Point.coordinates).strip(),
+                        })
         
-                # Assuming you want to extract placemarks as an example
-                placemarks = []
-                for placemark in root.Document.Folder.Placemark:
-                    placemarks.append({
-                        'name': str(placemark.name),
-                        # 'description': str(placemark.description),
-                        'coordinates': str(placemark.Point.coordinates).strip(),
-                    })
-        
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    json.dump(placemarks, f, indent=4)
+                    with open(output_path, 'w', encoding='utf-8') as f:
+                        json.dump(placemarks, f, indent=4)
                 
                 json_list.append(output_path)
 
@@ -68,20 +73,27 @@ else:
         def data_analysis(data_package: dict) -> dict:
             import glob
             import os
-            import json
-            from pykml import parser
+            import pandas as pd
 
             ## save data
-            data_path = "/storage/geos_data/"
+            data_path = "/storage/geo_data"
             save_path = "/storage/analysis"
 
             # List all KML files in the directory
-            json_files = glob.glob(os.path.join(input_directory, '*.json'))
+            json_files = glob.glob(os.path.join(data_path, '*.json'))
             for json_file in json_files:
+                print(json_file)
                 # TODO: Add pandas code for doing statistical analysis of the JSONs.
+                df = pd.read_json(json_file)
+
+                # We will declare an empty dictionary coordinates.
+                coords = []
+                for index, row in df.iterrows():
+                    print(row['name'])
+                    print(row['coordinates'])
 
             ## return status
-            return {"status" : "success", "data_path" : data_path}
+            return {"status" : "success", "data_path" : save_path}
 
 
         @task()
@@ -100,3 +112,4 @@ else:
         data_c = visualize(data_b)
 
     geoconfirmed_pipeline = geoconfirmed_pipeline()
+
