@@ -35,8 +35,11 @@ def get_all_coords() -> list:
             coordinate=row['coordinates'].split(',')[:2]
             # We will append a coordinate to the array.
             coordinates.append({
-                'latitude': float(coordinate[0]),
-                'longitude': float(coordinate[1]),
+                # The people who created the KML files on the losses in the conflicts switched around
+                # the latitude and longitude when packaging the data, so we will need to swithc
+                # the coordinates around in order to put the data into the right locations.
+                'latitude': float(coordinate[1]),
+                'longitude': float(coordinate[0]),
                 'type': 'loss'
             })
 
